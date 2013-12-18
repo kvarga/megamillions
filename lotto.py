@@ -76,13 +76,27 @@ def get_megamillion_numbers():
         return
 
     megamillion_megaball = int(r[0])
-    return (megamillion_date, megamillion_balls, megamillion_megaball)
+
+    # get prizes (bowwow)
+    prizes = {}
+    regex = re.compile("<tr class=\"winning-numbers-prize-row[^\"]*\">\s*<td>\s*([^<]*)\s*</td>\s*<td>\s*([^<]*)\s*</td>\s*<td>\s*([^<]*)", re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    r = regex.findall(data)
+    for money_line in r:
+        matches = money_line[0].split('+')
+        white_balls = int(matches[0].strip(' '))
+        mega_balls = int(matches[1].strip(' '))
+        amount = money_line[2]
+        prizes[(white_balls, mega_balls)] = amount
+
+    #(u'5 + 0', u'9', u'$1,000,000')
+    return (megamillion_date, megamillion_balls, megamillion_megaball, prizes)
 
 def find_winners():
     results = get_megamillion_numbers()
     win_date = results[0]
     win_balls = set(results[1])
     win_megaball = results[2]
+    win_prizes = results[3]
     print('%s Megamillion Results: %s MEGA(%s)' % (win_date, ' '.join([str(ball) for ball in win_balls]), win_megaball))
 
     #lotto_picks = LottoPicks.query.filter_by(date=results[0]).all()
@@ -95,6 +109,10 @@ def find_winners():
         if pick.mega_ball == win_megaball:
             megaball_match = True
 
+        prize_won = None
+        prize_query = (len(combined), 1 if megaball_match else 0)
+        if prize_query in win_prizes:
+            prize_won = win_prizes[prize_query]
         if len(combined) >= 3 or megaball_match:
-            print('MEGABALL!' if megaball_match else None, len(combined), 'combined')
+            print('MEGABALL!' if megaball_match else None, '%s white balls' % len(combined), '-', prize_won)
 
