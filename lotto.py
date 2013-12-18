@@ -1,6 +1,27 @@
 # omg pythonz!
 import requests
 import re
+import os
+from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///test.db')
+db = SQLAlchemy(app)
+
+class LottoPicks(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(150))
+    ball_1 = db.Column(db.Integer)
+    ball_2 = db.Column(db.Integer)
+    ball_3 = db.Column(db.Integer)
+    ball_4 = db.Column(db.Integer)
+    ball_5 = db.Column(db.Integer)
+    mega_ball = db.Column(db.Integer)
+
+
+def define_tables():
+    db.create_all()
 
 def get_megamillion_numbers():
     r = requests.get('http://www.megamillions.com/winning-numbers')
@@ -36,4 +57,3 @@ def get_megamillion_numbers():
     megamillion_megaball = int(r[0])
     print 'Mega-Balls %s' % megamillion_megaball
 
-get_megamillion_numbers()
